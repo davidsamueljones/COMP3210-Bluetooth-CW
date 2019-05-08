@@ -286,18 +286,9 @@ def generate_ad(aid, bss):
 if __name__ == "__main__":
     bss = list()
     bss.append(gen_canvas_bitstring((1000, 500), (1, 0, 0)))
-    bss.append(gen_img_bitstring(1, (23, 52), (1, 0), 0))
-    bss.append(gen_text_bitstring((50, 50), 1, (1, 0, 0), 50, 90, "Richard is a cuck!"))
-    bss.append(gen_polygon_bitstring((50, 50, 50), ((50, 50), (50, 50), (25, 50), (123, 988))))
-    bss.append(gen_text_bitstring((50, 50), 1, (1, 0, 0), 50, 90, "Yep, still a cuck!"))
     packets = generate_ad(1, bss)
-    if (len(packets) > 255):
-        raise ValueError("Too many packets to be an advert, maximum is 255.")
 
 
-# Notes:
-# First byte of each packet is a checksum over the whole packet
-# CHECKSUM (1 byte) : AD_ID (1 byte) : P_ID (1 byte)
 # TODO:
 # Title :: Title (1 byte++)
 # Shape_Circle : Radius : Position : Color
