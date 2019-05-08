@@ -14,7 +14,16 @@ INT16_MIN = -pow(2, 15)
 INT8_MAX = pow(2, 7) - 1
 INT8_MIN = -pow(2, 7)
 
+BYTE_BITS = 8
+PACKET_SPACE_BYTES = 20
+PACKET_HEADER_SIZE = 4
+PACKET_PAYLOAD_SIZE = PACKET_SPACE_BYTES - PACKET_HEADER_SIZE
+
+FORMAT_VER = 1 
+CHECKSUM_NONSE = 0x21 + FORMAT_VER
+
 class PacketSection(Enum):
+    NONE = 0x00
     AD_CFG = 0x01
     TITLE = 0x02
     CANVAS = 0x03
@@ -26,12 +35,31 @@ class PacketSection(Enum):
     def __int__(self):
         return self.value
 
-def make_ad_cfg(packet_cnt, data_bitstream):
-    bits = bitstring()
-    # Make CRC from bitstream
-    #zlib.crc32
+def gen_ad_cfg_bitstring(packet_cnt, bit_stream):
+    """
+    Create the bitstring for a advert definition section. 
 
-    #hex(zlib.crc32(data_bitstream) & 0xffffffff)
+    Arguments:
+        packet_cnt : Number data packets of data
+        bg_col : The raw bitstring of all payload data
+
+    Returns:
+        The generated bitstring
+        Output Structure:
+            * [0]   AD_CFG (UINT_8)
+            * [1]   Packet Count (UINT_8)
+            * [2-5] Data CRC (UINT_32)
+    """
+    bits = bitstring.BitString()
+    crc = zlib.crc32(bit_stream.bytes) & 0xFFFFFFFF;
+    # Make CRC from bitstream
+    bits.append(bitstring.pack('>B', int(PacketSection.AD_CFG)))
+    bits.append(bitstring.pack('>B', packet_cnt))
+    bits.append(bitstring.pack('>1L', crc))
+    return bits
+
+def get_ad_cfg_byte_count():
+    return 1 + 1 + 4
 
 def gen_canvas_bitstring(dims, bg_col):
     """
@@ -58,9 +86,9 @@ def gen_canvas_bitstring(dims, bg_col):
     # bg_col = tuple(map(lambda x: round(x), bg_col))
     # Create packet
     bits = bitstring.BitString()
-    bits.append(struct.pack('>B', int(PacketSection.CANVAS)))
-    bits.append(struct.pack('>2H', *dims))
-    bits.append(struct.pack('>3B', *bg_col))
+    bits.append(bitstring.pack('>B', int(PacketSection.CANVAS)))
+    bits.append(bitstring.pack('>2H', *dims))
+    bits.append(bitstring.pack('>3B', *bg_col))
     return bits
 
 
@@ -77,11 +105,11 @@ def gen_img_bitstring(img_id, position, dims, rotation):
     Returns:
         The generated bitstring
         Output Structure:
-            * IMAGE (UINT_8)
-            * Image ID (UINT_8)
-            * XY Position [X (UINT_16), Y (UINT_16)]
-            * Width/Height Dimensions [Width (INT_16), Height (INT_16)]
-            * Rotation where each increment corresponds to a 1.41 degree (UINT_8)
+            * [0]        IMAGE (UINT_8)
+            * [1]        Image ID (UINT_8)
+            * [2-3, 4-5] XY Position [X (UINT_16), Y (UINT_16)]
+            * [6-7, 8-9] Width/Height Dimensions [Width (INT_16), Height (INT_16)]
+            * [10]       Rotation where each increment corresponds to a 1.41 degree (UINT_8)
     """
     # Validate inputs
     if img_id < 0 or img_id > UINT8_MAX:
@@ -97,12 +125,13 @@ def gen_img_bitstring(img_id, position, dims, rotation):
     conv_rotation = round(255 / 360.0 * rotation)
     # Create packet
     bits = bitstring.BitString()
-    bits.append(struct.pack('>B', int(PacketSection.IMAGE)))
-    bits.append(struct.pack('>B', img_id))
-    bits.append(struct.pack('>2H', *position))
-    bits.append(struct.pack('>2h', *dims))
-    bits.append(struct.pack('>B', conv_rotation))
+    bits.append(bitstring.pack('>B', int(PacketSection.IMAGE)))
+    bits.append(bitstring.pack('>B', img_id))
+    bits.append(bitstring.pack('>2H', *position))
+    bits.append(bitstring.pack('>2h', *dims))
+    bits.append(bitstring.pack('>B', conv_rotation))
     return bits
+
 
 def gen_text_bitstring(position, font_id, font_col, font_size, rotation, text_str):
     """
@@ -145,15 +174,15 @@ def gen_text_bitstring(position, font_id, font_col, font_size, rotation, text_st
     conv_rotation = round(255 / 360.0 * rotation)
     # Create packet
     bits = bitstring.BitString()
-    bits.append(struct.pack('>B', int(PacketSection.TEXT)))
-    bits.append(struct.pack('>2H', *position))
-    bits.append(struct.pack('>B', font_id))
-    bits.append(struct.pack('>3B', *font_col))
-    bits.append(struct.pack('>B', font_size))
-    bits.append(struct.pack('>B', conv_rotation))
+    bits.append(bitstring.pack('>B', int(PacketSection.TEXT)))
+    bits.append(bitstring.pack('>2H', *position))
+    bits.append(bitstring.pack('>B', font_id))
+    bits.append(bitstring.pack('>3B', *font_col))
+    bits.append(bitstring.pack('>B', font_size))
+    bits.append(bitstring.pack('>B', conv_rotation))
     for c in text_str:
-        bits.append(struct.pack('>B', ord(c))) 
-    bits.append(struct.pack('>B', ord('\0')))  
+        bits.append(bitstring.pack('>B', ord(c))) 
+    bits.append(bitstring.pack('>B', ord('\0')))  
     return bits
 
 
@@ -182,37 +211,66 @@ def gen_polygon_bitstring(fill_col, points):
     # # Constrain inputs to sending limits
 
     bits = bitstring.BitString()
-    bits.append(struct.pack('>B', int(PacketSection.SHAPE_POLYGON)))
-    bits.append(struct.pack('>3B', *fill_col))
-    bits.append(struct.pack('>B', len(points)))
+    bits.append(bitstring.pack('>B', int(PacketSection.SHAPE_POLYGON)))
+    bits.append(bitstring.pack('>3B', *fill_col))
+    bits.append(bitstring.pack('>B', len(points)))
     for p in points:
         if len(p) is not 2 or any(map(lambda x: x < 0 or x > UINT16_MAX, p)):
             raise ValueError('The provided position value for a polygon point is not valid ', p) 
-        bits.append(struct.pack('>2H', *p))
+        bits.append(bitstring.pack('>2H', *p))
 
     return bits
 
+def main():    
+    # Define an advert
+    aid = 1
 
+    # Create a bitstream of all the objects
+    bit_stream = bitstring.BitString()
+    bit_stream.append(gen_canvas_bitstring((1000, 500), (1, 0, 0)))
+    bit_stream.append(gen_img_bitstring(1, (23, 52), (1, 0), 0))
+    bit_stream.append(gen_text_bitstring((50, 50), 1, (1, 0, 0), 50, 90, "Richard is a cuck!"))
+    bit_stream.append(gen_polygon_bitstring((50, 50, 50), ((50, 50), (50, 50), (25, 50), (123, 988))))
+    # Calculate as if the AD_CFG is attached (need to do all this prior to CRC)
+    data_bits_count = bit_stream.length + (get_ad_cfg_byte_count() * BYTE_BITS)
+    print("Stream Bits: " + str(data_bits_count) + " [Bytes : " + str(data_bits_count / BYTE_BITS) + "]")
+    # Pad with 0s
+    pad_bits = BYTE_BITS * PACKET_PAYLOAD_SIZE - (data_bits_count % (PACKET_PAYLOAD_SIZE * BYTE_BITS))
+    bit_stream.append(bitstring.pack('pad:n', n=pad_bits))
+    data_bits_count = data_bits_count + pad_bits
+    # Insert AD_CFG at the front of the bitstream
+    packet_payload_count = data_bits_count / (1.0 * PACKET_PAYLOAD_SIZE * BYTE_BITS)
+    assert(int(packet_payload_count) == packet_payload_count) 
+    packet_payload_count = int(packet_payload_count)
+    bit_stream.insert(gen_ad_cfg_bitstring(packet_payload_count, bit_stream), 0)
+
+    # Split into equal sized packets 
+    packets = list()
+    packet_payloads = list(bit_stream.cut(PACKET_PAYLOAD_SIZE*BYTE_BITS))
+    # Verify nothing has gone wrong 
+    assert(data_bits_count != bit_stream.length, data_bits_count, bit_stream.length)
+    assert(packet_payload_count != len(packet_payloads), packet_payload_count, len(packet_payloads))
+    print(packet_payload_count)
+    # Create packets with prefixed headers
+    print("Payload Packets: " + str(packet_payload_count))
+    for pid in range(packet_payload_count):
+        packet_bits = bitstring.BitString()
+        packet_bits.append(bitstring.pack('>B', aid))
+        packet_bits.append(bitstring.pack('>B', pid))
+        packet_bits.append(packet_payloads[pid])
+        # Add a checksum at the front to verify that it is a broadcast-payload
+        packet_checksum = zlib.crc32(packet_bits.bytes) & 0xFFFF
+        packet_bits.insert(bitstring.pack('>H', packet_checksum), 0)
+        print(packet_bits)
+        packets.append(packet_bits)
+
+
+if __name__ == "__main__":
+    main()
+
+
+# Notes:
 # First byte of each packet is a checksum over the whole packet
 # CHECKSUM (1 byte) : AD_ID (1 byte) : P_ID (1 byte)
-
-# AD_Start (1 byte)  : Num_Packets (1 byte) : Full CRC (4 bytes) [CREATE LAST]
 # Title :: Title (1 byte++)
-# Text_Settings_REF_ID (1 byte) : Position (2 bytes) : Font_ID (1 byte): Size (1 byte) : Rotation (1 byte)
-# Text_REF_ID (1 byte) : Text... (1 byte for each character terminated by null terminator)
 # Shape_Circle : Radius : Position : Color
-
-# Create a bitstream of all the objects
-bit_stream = bitstring.BitString()
-bit_stream.append(gen_canvas_bitstring((1000, 500), (1, 0, 0)))
-bit_stream.append(gen_img_bitstring(1, (23, 52), (1, 0), 0))
-bit_stream.append(gen_text_bitstring((50, 50), 1, (1, 0, 0), 50, 90, "Richard is a cuck!"))
-bit_stream.append(gen_polygon_bitstring((50, 50, 50), ((50, 50), (50, 50), (25, 50), (123, 988))))
-#make_ad_cfg(bit_stream)
-print(bit_stream)
-# CRC Check
-print(hex(zlib.crc32(bit_stream.bytes) & 0xffffffff))
-
-# Segment bitstream into packets
-# while remaining bitstream
-# create new ad_packet = bitarray() 
