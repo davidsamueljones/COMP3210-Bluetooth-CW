@@ -2,6 +2,7 @@ import struct
 import math
 import bitstring # https://pythonhosted.org/bitstring/packing.html
 import zlib
+import reedsolo
 from enum import Enum
 
 # Structure limits
@@ -17,7 +18,7 @@ INT8_MIN = -pow(2, 7)
 # Packet settings
 BYTE_BITS = 8
 PACKET_SPACE_BYTES = 20
-PACKET_HEADER_SIZE = 4
+PACKET_HEADER_SIZE = 5
 PACKET_PAYLOAD_SIZE = PACKET_SPACE_BYTES - PACKET_HEADER_SIZE
 
 # Version identifier, used in checksums to verify that the recevier
@@ -272,7 +273,7 @@ def generate_ad(aid, bss):
     for pid in range(packet_payload_count):
         packet_bits = bitstring.BitString()
         packet_bits.append(bitstring.pack('>B', aid))
-        packet_bits.append(bitstring.pack('>B', pid))
+        packet_bits.append(bitstring.pack('>H', pid))
         packet_bits.append(packet_payloads[pid])
         # Add a checksum at the front to verify that it is a broadcast-payload
         packet_checksum = zlib.crc32(packet_bits.bytes)
@@ -287,7 +288,6 @@ if __name__ == "__main__":
     bss = list()
     bss.append(gen_canvas_bitstring((1000, 500), (1, 0, 0)))
     packets = generate_ad(1, bss)
-
 
 # TODO:
 # Title :: Title (1 byte++)

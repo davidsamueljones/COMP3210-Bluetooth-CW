@@ -51,8 +51,6 @@ def make_test_ad():
     #     raise ValueError("Too many packets to be an advert, maximum is 255.")
     return packets
 
-
-
 if __name__ == "__main__":
     packets = make_test_ad()
     execute_cmds(get_btle_setup_cmds())
