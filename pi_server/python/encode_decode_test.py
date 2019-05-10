@@ -1,15 +1,23 @@
-from sys import stdout
+import sys
 from lt import encode, decode
+import custom_lt
 import random
 import itertools
 import math
 
+
+
 PAYLOAD_SPACE = 25
 
 def main():	
+	# Override default encode/decode
+	custom_lt.configure_encoder(encode)
+	custom_lt.configure_decoder(decode)
+
 	# Configuration
 	filename = "test_string.txt"
-	block_size = 13
+	block_size = 15
+	block_seed = 1
 	# Find filelength
 	f_bytes = None
 	f_len = 0
@@ -25,15 +33,20 @@ def main():
 	# Encode blocks
 	encoded = []
 	with open(filename, 'rb') as f:
-	    taken = itertools.islice(encode.encoder(f, block_size), generate)
+	    taken = itertools.islice(encode.encoder(f, block_size, seed=block_seed), generate)
 	    encoded = list(taken)
+	# # Comment in for Java formatted encode
+	# print("{")
+	# [print("\"" + e.hex() + "\",") for e in encoded]
+	# print("};")
+	# return
 
 	# --- Assume all these encoded packets are sent
 	print("Payload (bytes):", len(encoded[0]))
 	print("TX (packets): ", len(encoded))
 	#--- Assume half of them are received
 	keep = int(generate / 2)
-	keep = generate
+	#keep = generate
 	random.shuffle(encoded)
 	encoded = encoded[0:keep]
 	print("RX (packets): ", len(encoded))
@@ -44,7 +57,7 @@ def main():
 	# Take from the stream of received blocks, and attempt to decode them
 	needed = 0
 	for block_dat in encoded:
-		print(block_dat.hex(), " : ", len(block_dat))
+		print(block_dat.hex())
 		block = decode.block_from_bytes(block_dat)
 		decoder.consume_block(block)
 		needed += 1
