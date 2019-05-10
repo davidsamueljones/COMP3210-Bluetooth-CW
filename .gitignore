@@ -1,1 +1,7 @@
 .DS_STORE
+*.class
+*.pyc
+.project
+.classpath
+.settings
+rx_*
