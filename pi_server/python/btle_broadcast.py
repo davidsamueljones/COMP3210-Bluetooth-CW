@@ -32,7 +32,6 @@ ADVERT_TYPE_ID = 3
 # Default device to send from
 BT_DEVICE = "hci0"
 
-
 def execute_cmds(cmd_list):
     for cmd in cmd_list:
         subprocess.call(cmd, shell=True)
@@ -63,7 +62,7 @@ def get_btle_disable_cmds(bt_device=BT_DEVICE):
     return cmd_list
 
 
-def send_test_packet(num, bt_device=BT_DEVICE):
+def send_test_packet(i, bt_device=BT_DEVICE):
     test_stream_id = "11 AA 22 BB 33 CC 44 DD"
     uuid = bitstring.pack(">L", i).hex
     uuid =  "0"*(16-len(uuid)) + uuid
@@ -75,10 +74,14 @@ def send_test_packet(num, bt_device=BT_DEVICE):
     execute_cmds([str_cmd])
 
 
-def send_test_stream(length):
-    for i in range(length):
-        send_test_packet(i)
-
+def send_test_stream(length, bt_device=BT_DEVICE):
+    try:
+        for i in range(length):
+            send_test_packet(i, bt_device)
+    except KeyboardInterrupt:
+        execute_cmds(get_btle_disable_cmds(bt_device))
+        exit(0)
+    
 
 def send_data_packet(data_bytes, bt_device=BT_DEVICE):
     data_bytes = ' '.join(data_bytes[i:i+2] for i in range(0, len(data_bytes), 2))
@@ -138,6 +141,7 @@ def data_broadcast_bytes(cid, tx_bytes, data_type, packet_count, \
             i += 1
     except KeyboardInterrupt:
         execute_cmds(get_btle_disable_cmds(bt_device))
+        exit(0)
 
 
 def data_broadcast_file(cid, filename, data_type, repetitions=None, \
