@@ -9,7 +9,6 @@ import custom_lt
 import io
 import math
 import zlib
-import random
 
 # The type identifier to use when sending test packets
 TEST_BEACON_TYPE = "02 15"
@@ -25,6 +24,7 @@ FORMAT_VER = 0x0100
 CHECKSUM_NONSE = 0xBEEF + FORMAT_VER
 
 # Sendable Data Types
+UNKNOWN_TYPE_ID = 0
 TEXT_TYPE_ID = 1
 IMAGE_TYPE_ID = 2
 ADVERT_TYPE_ID = 3
@@ -39,37 +39,37 @@ def execute_cmds(cmd_list):
     return True
 
 
-def get_btle_setup_cmds():
+def get_btle_setup_cmds(bt_device=BT_DEVICE):
     cmd_list = list()
     # Turn on the interface
-    cmd_list.append("sudo hciconfig {} up".format(BT_DEVICE))
+    cmd_list.append("sudo hciconfig {} up".format(bt_device))
     # Disable scanning for other BT devices, transmit only
-    cmd_list.append("sudo hciconfig {} noscan".format(BT_DEVICE))
+    cmd_list.append("sudo hciconfig {} noscan".format(bt_device))
     # Decrease transmission interval to 100ms [max for non-connectable] (normally ~1s)
-    cmd_list.append("sudo hcitool -i {} cmd 0x08 0x0006 A0 00 A0 00 03 00 00 00 00 00 00 00 00 07 00".format(BT_DEVICE))
+    cmd_list.append("sudo hcitool -i {} cmd 0x08 0x0006 A0 00 A0 00 03 00 00 00 00 00 00 00 00 07 00".format(bt_device))
     # Enable advertising mode without causing interval to increase
     # Equivalent to leadv 3 (non-connectable undirected advertising)
-    cmd_list.append("sudo hcitool -i {} cmd 0x08 0x000a 01".format(BT_DEVICE))
+    cmd_list.append("sudo hcitool -i {} cmd 0x08 0x000a 01".format(bt_device))
     return cmd_list
 
 
-def get_btle_disable_cmds():
+def get_btle_disable_cmds(bt_device=BT_DEVICE):
     cmd_list = list()
     # Stop advertising
-    cmd_list.append("sudo hciconfig {} noleadv")
+    cmd_list.append("sudo hciconfig {} noleadv".format(bt_device))
     # Turn off the interface
-    cmd_list.append("sudo hciconfig {} down")
+    cmd_list.append("sudo hciconfig {} down".format(bt_device))
     return cmd_list
 
 
-def send_test_packet(num):
+def send_test_packet(num, bt_device=BT_DEVICE):
     test_stream_id = "11 AA 22 BB 33 CC 44 DD"
     uuid = bitstring.pack(">L", i).hex
     uuid =  "0"*(16-len(uuid)) + uuid
     uuid = ' '.join(uuid[i:i+2] for i in range(0, len(uuid), 2))
     str_bytes = "1E 02 01 1A 1A FF 4C 00 {} {} {} 00 0A 00 0B".format( \
         TEST_BEACON_TYPE, test_stream_id, uuid)
-    str_cmd = "sudo hcitool -i {} cmd 0x08 0x0008 {}".format(BT_DEVICE, str_bytes)
+    str_cmd = "sudo hcitool -i {} cmd 0x08 0x0008 {}".format(bt_device, str_bytes)
     print(str_cmd)
     execute_cmds([str_cmd])
 
@@ -79,10 +79,10 @@ def send_test_stream(length):
         send_test_packet(i)
 
 
-def send_data_packet(data_bytes):
+def send_data_packet(data_bytes, bt_device=BT_DEVICE):
     data_bytes = ' '.join(data_bytes[i:i+2] for i in range(0, len(data_bytes), 2))
     str_bytes = "1E 02 01 1A 1A FF 4C 00 {} {}".format(DATA_BEACON_TYPE, data_bytes)
-    str_cmd = "sudo hcitool -i {} cmd 0x08 0x0008 {}".format(BT_DEVICE, str_bytes)
+    str_cmd = "sudo hcitool -i {} cmd 0x08 0x0008 {}".format(bt_device, str_bytes)
     #print(str_cmd)
     execute_cmds([str_cmd])
 
@@ -122,7 +122,8 @@ def encode_chunk_bytes(cid, data_type, data, block_seed=None):
     # Use the chunk stream generator
     return _encode_chunk_stream(cid, data_stream, block_seed)
 
-def data_broadcast_bytes(cid, tx_bytes, data_type, packet_count, block_seed=None):
+def data_broadcast_bytes(cid, tx_bytes, data_type, packet_count, \
+                                    block_seed=None, bt_device=BT_DEVICE):
     # Get the encoded packet generator
     gen = encode_chunk_bytes(cid, data_type, tx_bytes, block_seed)
     # Run until the required number of packets are sent, if this is
@@ -130,10 +131,11 @@ def data_broadcast_bytes(cid, tx_bytes, data_type, packet_count, block_seed=None
     i = 0
     while packet_count is None or i < packet_count:
         packet = next(gen).hex()
-        send_data_packet(packet)
+        send_data_packet(packet, bt_device)
         i += 1
 
-def data_broadcast_file(cid, filename, data_type, repetitions=None, block_seed=None):
+def data_broadcast_file(cid, filename, data_type, repetitions=None, \
+                                    block_seed=None, bt_device=BT_DEVICE):
     # Find filelength
     f_bytes = None
     f_len = 0
@@ -143,26 +145,4 @@ def data_broadcast_file(cid, filename, data_type, repetitions=None, block_seed=N
         packet_count = None
         if repetitions is not None:
             packet_count = math.ceil(f_len / LT_BLOCK_SIZE) * repetitions
-        data_broadcast_bytes(cid, f_bytes, data_type, packet_count, block_seed)
-
-###################################################
-### MAIN
-###################################################
-if __name__ == "__main__":
-    # Configuration A
-    filename = "test_string.txt"
-    data_type = TEXT_TYPE_ID
-    # Configuration B
-    filename = "km_small.png"
-    data_type = IMAGE_TYPE_ID
-
-    # Use a random chunk ID
-    random.seed(None)
-    cid = random.randint(0, 2**16-1)
-
-    # Start, configure BTLE
-    execute_cmds(get_btle_setup_cmds())
-    # Send!
-    data_broadcast_file(cid, filename, data_type)
-    # Finish, shutoff BTLE
-    execute_cmds(get_btle_disable_cmds())
+        data_broadcast_bytes(cid, f_bytes, data_type, packet_count, block_seed, bt_device)
