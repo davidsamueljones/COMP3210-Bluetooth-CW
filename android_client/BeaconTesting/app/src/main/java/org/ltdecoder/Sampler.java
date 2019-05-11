@@ -1,3 +1,5 @@
+package org.ltdecoder;
+
 import java.util.Arrays;
 
 public class Sampler {

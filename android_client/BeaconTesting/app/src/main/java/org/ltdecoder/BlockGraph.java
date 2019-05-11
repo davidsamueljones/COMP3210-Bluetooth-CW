@@ -1,5 +1,8 @@
+package org.ltdecoder;
+
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,10 +13,9 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 class BlockGraph {
-  public final int num_blocks;
-  public final Map<Integer, Set<CheckNode>> checks;
-  public final Map<Integer, byte[]> eliminated;
-
+  private final int num_blocks;
+  private final Map<Integer, Set<CheckNode>> checks;
+  private final Map<Integer, byte[]> eliminated;
 
   public BlockGraph(int num_blocks) {
     // Initialise the checks map to act like a Python defaultdictionary 
@@ -25,7 +27,7 @@ class BlockGraph {
       public Set<CheckNode> get(Object key) {
         if (!super.containsKey(key)) {
           if (key instanceof Integer) {
-            super.put((Integer) key, new HashSet<>());
+            super.put((Integer) key, new HashSet<CheckNode>());
           } else {
             throw new IllegalArgumentException("Entry cannot be created for non-integer key");
           }
@@ -74,7 +76,7 @@ class BlockGraph {
         }
       }
     }
-    return eliminated.size() >= num_blocks;
+    return getResolvedBlocks() >= num_blocks;
   }
 
   public Set<Entry<Integer, byte[]>> eliminate(Integer node, byte[] data) {
@@ -109,7 +111,7 @@ class BlockGraph {
   
   public Iterator<byte[]> get_block_bytes_iterator() {
     List<Entry<Integer, byte[]>> list = new ArrayList<>(eliminated.entrySet());
-    list.sort(new Comparator<Entry<Integer, byte[]>>() {
+    Collections.sort(list, new Comparator<Entry<Integer, byte[]>>() {
       @Override
       public int compare(Map.Entry<Integer, byte[]> o1, Map.Entry<Integer, byte[]> o2) {
         return Integer.compare(o1.getKey(), o2.getKey());
@@ -121,6 +123,10 @@ class BlockGraph {
       block_bytes.add(entry.getValue());
     }
     return block_bytes.iterator();
+  }
+
+  public int getResolvedBlocks() {
+    return eliminated.size();
   }
 
   class CheckNode {

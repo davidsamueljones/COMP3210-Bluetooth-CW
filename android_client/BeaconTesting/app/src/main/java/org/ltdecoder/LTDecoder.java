@@ -1,3 +1,5 @@
+package org.ltdecoder;
+
 import java.util.Iterator;
 import java.util.Set;
 
@@ -39,14 +41,13 @@ public class LTDecoder {
       this.initialised = true;
     }
     // Run PRNG with given seed to figure out which blocks were XORed to make received data
-    SRCBlocks src_blocks = prng.get_src_blocks(lt_block.blockseed);
+    PRNG.SRCBlocks src_blocks = prng.get_src_blocks(lt_block.blockseed);
     // If BP is done, stop
     this.done = handle_block(src_blocks.nums, lt_block.block);
     return this.done;
   }
 
   private boolean handle_block(Set<Integer> src_blocks, byte[] block) {
-    // return block_graph.add_block(src_blocks, block);
     return block_graph.add_block(src_blocks, block);
   }
 
@@ -70,6 +71,16 @@ public class LTDecoder {
     return decoded;
   }
 
+  public int getFilesize() {
+    return filesize;
+  }
 
+  public int getBlocksNeeded() {
+    return K;
+  }
+
+  public int getResolvedBlocks() {
+    return block_graph.getResolvedBlocks();
+  }
 
 }

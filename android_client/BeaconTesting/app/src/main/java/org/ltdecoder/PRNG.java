@@ -1,4 +1,5 @@
-import java.util.Collections;
+package org.ltdecoder;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -74,19 +75,19 @@ public class PRNG {
     System.out.println("Next Lot: " + go2);
   }
 
-}
+  public class SRCBlocks {
+    public final long blockseed;
+    public final int d;
+    public final Set<Integer> nums;
 
-
-class SRCBlocks {
-  public final long blockseed;
-  public final int d;
-  public final Set<Integer> nums;
-
-  public SRCBlocks(long blockseed, int d, Set<Integer> nums) {
-    this.blockseed = blockseed;
-    this.d = d;
-    this.nums = nums;
+    public SRCBlocks(long blockseed, int d, Set<Integer> nums) {
+      this.blockseed = blockseed;
+      this.d = d;
+      this.nums = nums;
+    }
   }
+
+
 
 }
 

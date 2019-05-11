@@ -1,7 +1,9 @@
+package org.ltdecoder;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-class LTBlock {
+public class LTBlock {
   public static final int FILESIZE_BYTES = 2;
   public static final int BLOCKSIZE_BYTES = 1;
   public static final int BLOCKSEED_BYTES = 4;
@@ -34,19 +36,19 @@ class LTBlock {
 
   public static int getFilesize(byte[] bytes) {
     byte[] fs_bytes = Arrays.copyOfRange(bytes, FILESIZE_START, FILESIZE_START + FILESIZE_BYTES);
-    int filesize = ByteBuffer.wrap(fs_bytes).getShort() & 0xFFFF;
+    int filesize = ((int) ByteBuffer.wrap(fs_bytes).getShort()) & 0xFFFF;
     return filesize;
   }
 
   public static int getBlocksize(byte[] bytes) {
     byte[] bs_bytes = Arrays.copyOfRange(bytes, BLOCKSIZE_START, BLOCKSIZE_START + BLOCKSIZE_BYTES);
-    int blocksize = ByteBuffer.wrap(bs_bytes).get() & 0xFF;
+    int blocksize = ((int) ByteBuffer.wrap(bs_bytes).get()) & 0xFF;
     return blocksize;
   }
 
   public static long getBlockseed(byte[] bytes) {
     byte[] bs_bytes = Arrays.copyOfRange(bytes, BLOCKSEED_START, BLOCKSEED_START + BLOCKSEED_BYTES);
-    long blockseed = Integer.toUnsignedLong(ByteBuffer.wrap(bs_bytes).getInt());
+    long blockseed = ((long) ByteBuffer.wrap(bs_bytes).getInt() & 0xFFFFFFFF);
     return blockseed;
   }
 
