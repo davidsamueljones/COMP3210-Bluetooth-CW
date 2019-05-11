@@ -1,14 +1,14 @@
 import subprocess
 import bitstring
 import time
-
-from struct import pack
-from lt import encode, decode
-
 import custom_lt
 import io
 import math
 import zlib
+import signal
+
+from struct import pack
+from lt import encode, decode
 
 # The type identifier to use when sending test packets
 TEST_BEACON_TYPE = "02 15"
@@ -29,8 +29,9 @@ TEXT_TYPE_ID = 1
 IMAGE_TYPE_ID = 2
 ADVERT_TYPE_ID = 3
 
-# Device to send from
+# Default device to send from
 BT_DEVICE = "hci0"
+
 
 def execute_cmds(cmd_list):
     for cmd in cmd_list:
@@ -122,17 +123,22 @@ def encode_chunk_bytes(cid, data_type, data, block_seed=None):
     # Use the chunk stream generator
     return _encode_chunk_stream(cid, data_stream, block_seed)
 
+
 def data_broadcast_bytes(cid, tx_bytes, data_type, packet_count, \
-                                    block_seed=None, bt_device=BT_DEVICE):
+                                    block_seed=None, bt_device=BT_DEVICE):   
     # Get the encoded packet generator
     gen = encode_chunk_bytes(cid, data_type, tx_bytes, block_seed)
     # Run until the required number of packets are sent, if this is
     # None then an infinite number of packets are sent  
     i = 0
-    while packet_count is None or i < packet_count:
-        packet = next(gen).hex()
-        send_data_packet(packet, bt_device)
-        i += 1
+    try:
+        while packet_count is None or i < packet_count:
+            packet = next(gen).hex()
+            send_data_packet(packet, bt_device)
+            i += 1
+    except KeyboardInterrupt:
+        execute_cmds(get_btle_disable_cmds(bt_device))
+
 
 def data_broadcast_file(cid, filename, data_type, repetitions=None, \
                                     block_seed=None, bt_device=BT_DEVICE):

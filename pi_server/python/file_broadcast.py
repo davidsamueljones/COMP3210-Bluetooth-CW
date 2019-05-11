@@ -1,7 +1,7 @@
 import argparse
 import random
 import os
-from advert_broadcast import *
+from btle_broadcast import *
 
 ###################################################
 ### MAIN
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     execute_cmds(get_btle_setup_cmds(args.d))
     # Send the file!
     data_broadcast_file(cid, args.f, data_type, 
-        reptitions=args.n, block_seed=args.s, bt_device=args.d)
+        repetitions=args.n, block_seed=args.s, bt_device=args.d)
     # Finish, shutoff BTLE
     execute_cmds(get_btle_disable_cmds(args.d))
 

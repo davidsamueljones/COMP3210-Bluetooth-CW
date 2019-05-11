@@ -1,4 +1,4 @@
-from advert_broadcast import *
+from btle_broadcast import *
 import argparse
 
 def setup_broadcast(bt_device):
