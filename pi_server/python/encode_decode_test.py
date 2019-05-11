@@ -5,8 +5,6 @@ import random
 import itertools
 import math
 
-
-
 PAYLOAD_SPACE = 20
 
 def main():	
@@ -78,5 +76,5 @@ def main():
     f.write(rx_bytes)
     f.close()
 
-
-main()
+if __name__ == "__main__":
+    main()
