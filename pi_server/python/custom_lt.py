@@ -1,5 +1,6 @@
 from lt import encode, decode, sampler
 import sys
+import random
 from struct import pack, unpack
 
 def custom_encoder(f, blocksize, seed=None, c=sampler.DEFAULT_C, delta=sampler.DEFAULT_DELTA):
@@ -8,7 +9,7 @@ def custom_encoder(f, blocksize, seed=None, c=sampler.DEFAULT_C, delta=sampler.D
     """
     # Generate seed if not provided
     if seed is None:
-        seed = randint(0, 1 << 32 - 1)
+        seed = random.randint(0, 1 << 32 - 1)
     
     # Split the file into blocks of data
     filesize, blocks = encode._split_file(f, blocksize)
