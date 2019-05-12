@@ -4,51 +4,53 @@ import custom_lt
 import random
 import itertools
 import math
+import io
+import packet_gen
+from btle_broadcast import ADVERT_TYPE_ID, append_chunk_header
 
-PAYLOAD_SPACE = 20
+NORMAL_PAYLOAD_SPACE = 14
 
-def main():	
+def dump_for_java_test(input, encoded):
+    input_hex = str(input.hex())
+    input_bytes = 'byte[] input_bytes = {'
+    input_bytes = input_bytes + ', '.join("(byte) 0x" + input_hex[i:i+2] for i in range(0, len(input_hex), 2))
+    input_bytes = input_bytes + '};'
+    encoded_hex = "String[] encoded = {"
+    for e in encoded:
+        encoded_hex = encoded_hex + "\"" + e.hex() + "\","
+    encoded_hex = encoded_hex + "};"
+    
+    print(input_bytes)
+    print(encoded_hex)
+
+def run_test(test_bytes, output_file=None, dump_java=False):	
     # Override default encoder and decoder
     custom_lt.configure_encoder(encode)
     custom_lt.configure_decoder(decode)
 
     # Configuration
-    filename = "test_string.txt"
     block_size = 10
-    block_seed = 1
-    # Find filelength
-    f_bytes = None
-    f_len = 0
-    with open(filename, 'rb') as f:
-        f_bytes = f.read()		
-        f_len = len(f_bytes)
-    normal_packet_count = math.ceil(f_len / PAYLOAD_SPACE)
-    generate = normal_packet_count * 10
-    print("File Size (bytes): {}".format(f_len))
+    block_seed = None
+    # Check test size
+    t_len = len(test_bytes)
+    normal_packet_count = math.ceil(t_len / NORMAL_PAYLOAD_SPACE)
+    generate = normal_packet_count * 1000
+    print("Test Size (bytes): {}".format(t_len))
     print("Would normally need {} received packets!".format(normal_packet_count))	
     print("")
+    # Create a byte stream
+    data_stream = io.BytesIO(test_bytes)
 
     # Encode blocks
-    encoded = []
-    with open(filename, 'rb') as f:
-        taken = itertools.islice(encode.encoder(f, block_size, seed=block_seed), generate)
-        encoded = list(taken)
-    # # Comment in for Java formatted encode
-    # print("{")
-    # [print("\"" + e.hex() + "\",") for e in encoded]
-    # print("};")
-    # return
+    taken = itertools.islice(encode.encoder(data_stream, 
+                    block_size, seed=block_seed), generate)
+    encoded = list(taken)
 
     # --- Assume all these encoded packets are sent
     print("Payload (bytes):", len(encoded[0]))
-    print("TX (packets): ", len(encoded))
-    #--- Assume half of them are received
-    keep = int(generate / 2)
-    #keep = generate
+    print("Encoded (packets): ", len(encoded))
+    #--- Ignore order reflecting packet loss
     random.shuffle(encoded)
-    encoded = encoded[0:keep]
-    print("RX (packets): ", len(encoded))
-    print("")
 
     # Create the decoder for the receiver side
     decoder = decode.LtDecoder()
@@ -63,7 +65,7 @@ def main():
             print("Done!")
             break 	
     rx_bytes = decoder.bytes_dump()
-    success = f_bytes == rx_bytes
+    success = test_bytes == rx_bytes
     print("")
     if success:
         print("Success after {} encoded packets!".format(needed))
@@ -72,9 +74,35 @@ def main():
     # print("")
     # print(rx_bytes)
     # print("")
-    f = open("rx_" + filename, "w+b")
-    f.write(rx_bytes)
-    f.close()
+    if output_file is not None:
+        f = open(output_file, "w+b")
+        f.write(rx_bytes)
+        f.close()
+    if dump_java:
+        dump_for_java_test(test_bytes, encoded)
+
+def test_file(filename):
+    # Find filelength
+    f_bytes = None
+    f_len = 0
+    with open(filename, 'rb') as f:
+        f_bytes = f.read()		
+
+    run_test(f_bytes, output_file=("rx_" + filename))
+
+def test_advert():
+    # Define some objects
+    bss = list()
+    bss.append(packet_gen.gen_canvas_bitstring((1000, 500), (1, 0, 0)))
+    bss.append(packet_gen.gen_img_bitstring(1, (23, 52), (1, 0), 0))
+    bss.append(packet_gen.gen_text_bitstring((50, 50), 1, (1, 0, 0), 50, 90, "R!"))
+    bss.append(packet_gen.gen_polygon_bitstring((50, 50, 50), ((50, 50), (50, 50), (25, 50), (123, 988))))
+    bss.append(packet_gen.gen_text_bitstring((50, 50), 1, (1, 0, 0), 50, 90, "Yep, still a cuck!"))
+    # Create a bitstream of all the objects
+    ad_bytes = packet_gen.generate_ad(bss).bytes
+    ad_bytes = append_chunk_header(ADVERT_TYPE_ID, ad_bytes)
+    run_test(ad_bytes)
 
 if __name__ == "__main__":
-    main()
+    #test_file("test_string.txt")
+    test_advert()
