@@ -58,7 +58,6 @@ public class LTBlock {
   }
 
   public static void main(String[] args) {
-        "01720f41d8fec115050b4750150b0a1154566521040d",
     byte b = 0x1;
 
     byte[] input_bytes = {(byte) 0x8a, (byte) 0x5d, (byte) 0xa1, (byte) 0x8d, (byte) 0x03, (byte) 0x05, (byte) 0x00, (byte) 0x32, (byte) 0x00, (byte) 0x32, (byte) 0x01, (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x32, (byte) 0x40, (byte) 0x02, (byte) 0x52, (byte) 0x21};

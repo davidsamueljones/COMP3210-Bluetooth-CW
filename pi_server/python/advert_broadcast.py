@@ -38,14 +38,12 @@ if __name__ == "__main__":
     bss.append(packet_gen.gen_polygon_bitstring((50, 50, 50), ((50, 50), (50, 50), (25, 50), (123, 988))))
     bss.append(packet_gen.gen_text_bitstring((50, 50), 1, (1, 0, 0), 50, 90, "Yep, still a cuck!"))
     # Create a bitstream of all the objects
-    bit_stream = bitstring.BitString()
-    for bs in bss:
-        bit_stream.append(bs)
+    ad_bytes = packet_gen.generate_ad(bss).bytes
 
     # Start, configure BTLE
     execute_cmds(get_btle_setup_cmds(args.d))
     # Send the file!
-    data_broadcast_bytes(cid, bit_stream.bytes, data_type, 
+    data_broadcast_bytes(cid, ad_bytes, data_type, 
         packet_count=None, block_seed=args.s, bt_device=args.d)
     # Finish, shutoff BTLE
     execute_cmds(get_btle_disable_cmds(args.d))
