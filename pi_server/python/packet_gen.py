@@ -2,7 +2,6 @@ import struct
 import math
 import bitstring # https://pythonhosted.org/bitstring/packing.html
 import zlib
-import reedsolo
 from enum import Enum
 
 # Structure limits
@@ -184,9 +183,9 @@ def gen_text_bitstring(position, font_id, font_col, font_size, rotation, text_st
     bits.append(bitstring.pack('>3B', *font_col))
     bits.append(bitstring.pack('>B', font_size))
     bits.append(bitstring.pack('>B', conv_rotation))
+    bits.append(bitstring.pack('>B', len(text_str)))
     for c in text_str:
-        bits.append(bitstring.pack('>B', ord(c))) 
-    bits.append(bitstring.pack('>B', ord('\0')))  
+        bits.append(bitstring.pack('>B', ord(c)))
     return bits
 
 
@@ -225,70 +224,34 @@ def gen_polygon_bitstring(fill_col, points):
 
     return bits
 
-def generate_ad(aid, bss):    
+def generate_ad(bss):    
     """
-    Create the packet payloads that make up an advert. Concatenates all the object bitstrings and
-    then creates the ad configuration prefix bitstring. Splits into packets with a header
-    packet ID  
+    From a list of separate componenets combine them to create an ad.
 
     Arguments:
-        aid : The Advert ID
         bss : A list of object bitstrings 
 
     Returns:
-        A list of generated packets. Checksum is calculated across the AID, PID and Payload -
-        is the bottom 16 bits of a 32-bit CRC. Packet IDs are indexed from 0.
-        Output Packet:
-            * Checksum (UINT16): Advert ID (UINT8) : Packet ID (UINT8) : <--- PAYLOAD --->
+        Combined packets as a bitstring
     """
-    # Define an advert
-    aid = 1
-
     # Create a bitstream of all the objects
     bit_stream = bitstring.BitString()
     for bs in bss:
         bit_stream.append(bs)
-    # Calculate as if the AD_CFG is attached (need to do all this prior to CRC)
-    data_bits_count = bit_stream.length + (get_ad_cfg_byte_count() * BYTE_BITS)
-    print("Stream Bits: " + str(data_bits_count) + " [Bytes : " + str(data_bits_count / BYTE_BITS) + "]")
-    # Pad with 0s
-    pad_bits = BYTE_BITS * PACKET_PAYLOAD_SIZE - (data_bits_count % (PACKET_PAYLOAD_SIZE * BYTE_BITS))
-    bit_stream.append(bitstring.pack('pad:n', n=pad_bits))
-    data_bits_count = data_bits_count + pad_bits
-    # Insert AD_CFG at the front of the bitstream
-    packet_payload_count = data_bits_count / (1.0 * PACKET_PAYLOAD_SIZE * BYTE_BITS)
-    assert(int(packet_payload_count) == packet_payload_count) 
-    packet_payload_count = int(packet_payload_count)
-    bit_stream.insert(gen_ad_cfg_bitstring(packet_payload_count, bit_stream), 0)
-
-    # Split into equal sized packets 
-    packets = list()
-    packet_payloads = list(bit_stream.cut(PACKET_PAYLOAD_SIZE*BYTE_BITS))
-    # Verify nothing has gone wrong 
-    assert(data_bits_count == bit_stream.length)
-    assert(packet_payload_count == len(packet_payloads))
-
-    # Create packets with prefixed headers
-    print("Packets: " + str(packet_payload_count))
-    for pid in range(packet_payload_count):
-        packet_bits = bitstring.BitString()
-        packet_bits.append(bitstring.pack('>B', aid))
-        packet_bits.append(bitstring.pack('>H', pid))
-        packet_bits.append(packet_payloads[pid])
-        # Add a checksum at the front to verify that it is a broadcast-payload
-        packet_checksum = zlib.crc32(packet_bits.bytes)
-        packet_checksum = (packet_checksum + CHECKSUM_NONSE) & 0xFFFF
-        packet_bits.insert(bitstring.pack('>H', packet_checksum), 0)
-        print(packet_bits)
-        packets.append(packet_bits)
-    return packets
-
+    return bit_stream
+    
 
 if __name__ == "__main__":
     bss = list()
     bss.append(gen_canvas_bitstring((1000, 500), (1, 0, 0)))
-    packets = generate_ad(1, bss)
+    bss.append(gen_img_bitstring(1, (23, 52), (1, 0), 0))
+    bss.append(gen_text_bitstring((50, 50), 1, (1, 0, 0), 50, 90, "Richard is a cuck!"))
+    bss.append(gen_polygon_bitstring((50, 50, 50), ((50, 50), (50, 50), (25, 50), (123, 988))))
+    bss.append(gen_text_bitstring((50, 50), 1, (1, 0, 0), 50, 90, "Yep, still a cuck!"))
 
-# TODO:
-# Title :: Title (1 byte++)
-# Shape_Circle : Radius : Position : Color
+    ad = generate_ad(bss)
+    adstr = str(ad.hex )
+    java_str = 'byte[] test = {'
+    java_str = java_str + ', '.join("0x" + adstr[i:i+2] for i in range(0, len(adstr), 2))
+    java_str = java_str + '};'
+    print(java_str)
