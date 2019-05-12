@@ -14,20 +14,9 @@ INT16_MIN = -pow(2, 15)
 INT8_MAX = pow(2, 7) - 1
 INT8_MIN = -pow(2, 7)
 
-# Packet settings
-BYTE_BITS = 8
-PACKET_SPACE_BYTES = 20
-PACKET_HEADER_SIZE = 5
-PACKET_PAYLOAD_SIZE = PACKET_SPACE_BYTES - PACKET_HEADER_SIZE
-
-# Version identifier, used in checksums to verify that the recevier
-# is on the same version of advert formats. [Major (UINT8), Minor (UINT8)]
-FORMAT_VER = 0x0100
-CHECKSUM_NONSE = 0xBEEF + FORMAT_VER
-
 class PacketSection(Enum):
     NONE = 0x00
-    AD_CFG = 0x01
+    RESERVED_A = 0x01
     TITLE = 0x02
     CANVAS = 0x03
     IMAGE = 0x04
@@ -37,32 +26,6 @@ class PacketSection(Enum):
 
     def __int__(self):
         return self.value
-
-def gen_ad_cfg_bitstring(packet_cnt, bit_stream):
-    """
-    Create the bitstring for a advert definition section. 
-
-    Arguments:
-        packet_cnt : Number data packets of data
-        bg_col : The raw bitstring of all payload data
-
-    Returns:
-        The generated bitstring
-        Output Structure:
-            * [0]   AD_CFG (UINT8)
-            * [1]   Packet Count (UINT8)
-            * [2-5] Data CRC (UINT_32)
-    """
-    bits = bitstring.BitString()
-    crc = zlib.crc32(bit_stream.bytes) & 0xFFFFFFFF;
-    # Make CRC from bitstream
-    bits.append(bitstring.pack('>B', int(PacketSection.AD_CFG)))
-    bits.append(bitstring.pack('>B', packet_cnt))
-    bits.append(bitstring.pack('>1L', crc))
-    return bits
-
-def get_ad_cfg_byte_count():
-    return 1 + 1 + 4
 
 def gen_canvas_bitstring(dims, bg_col):
     """
@@ -251,7 +214,7 @@ if __name__ == "__main__":
 
     ad = generate_ad(bss)
     adstr = str(ad.hex )
-    java_str = 'byte[] test = {'
-    java_str = java_str + ', '.join("0x" + adstr[i:i+2] for i in range(0, len(adstr), 2))
-    java_str = java_str + '};'
-    print(java_str)
+    java_bytes = 'byte[] test = {'
+    java_bytes = java_bytes + ', '.join("(byte) 0x" + adstr[i:i+2] for i in range(0, len(adstr), 2))
+    java_bytes = java_bytes + '};'
+    print(java_bytes)
