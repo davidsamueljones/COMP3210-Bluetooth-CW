@@ -113,11 +113,7 @@ def _encode_chunk_stream(cid, stream, block_seed=None):
 
 def encode_chunk_bytes(cid, data_type, data, block_seed=None):
     # Append a header
-    data_type_bytes = pack(">B", data_type)
-    send_data = data_type_bytes + data
-    crc = zlib.crc32(send_data)
-    crc_bytes = pack(">I", crc)
-    send_data = crc_bytes + send_data
+    send_data = append_chunk_header(data_type, data)
     # Create a byte stream
     data_stream = io.BytesIO(send_data)
     # Debug print
@@ -125,6 +121,15 @@ def encode_chunk_bytes(cid, data_type, data, block_seed=None):
     print("Transmission Size (bytes): {}".format(data_len))
     # Use the chunk stream generator
     return _encode_chunk_stream(cid, data_stream, block_seed)
+
+
+def append_chunk_header(data_type, data):
+    data_type_bytes = pack(">B", data_type)
+    send_data = data_type_bytes + data
+    crc = zlib.crc32(send_data)
+    crc_bytes = pack(">I", crc)
+    send_data = crc_bytes + send_data
+    return send_data
 
 
 def data_broadcast_bytes(cid, tx_bytes, data_type, packet_count, \
