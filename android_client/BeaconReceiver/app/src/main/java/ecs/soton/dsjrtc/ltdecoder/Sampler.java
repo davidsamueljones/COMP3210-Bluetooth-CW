@@ -31,11 +31,15 @@ public class Sampler {
 
   public static double[] gen_mu(int K, double delta, double c) {
     double S = c * Math.log(K / delta) * Math.sqrt(K);
+
     double[] tau = gen_tau(S, K, delta);
     double[] rho = gen_rho(K);
     double normalizer = 0;
-    for (int d = 0; d < K; d++) {
-      normalizer += (rho[d] + tau[d]);
+    for (int d = 0; d < tau.length; d++) {
+      normalizer += tau[d];
+    }
+    for (int d = 0; d < rho.length; d++) {
+      normalizer += rho[d];
     }
     double[] mu = new double[K];
     for (int d = 0; d < K; d++) {
