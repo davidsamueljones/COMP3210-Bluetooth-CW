@@ -60,7 +60,7 @@ public class BeaconReceiver {
     private Map<Integer, LTDecoder> chunkDecoders = new HashMap<>();
     private Map<Integer, Integer> chunkReceiveCount = new HashMap<>();
     private Set<Integer> failedDecodes = new HashSet<>();
-    private int lastDecodedString = 0;
+    private Integer lastDecodedString = null;
 
     /**
      * @return Whether the beacon identifies a test packet
@@ -242,8 +242,10 @@ public class BeaconReceiver {
             builder.append("* None * <br>");
         } else {
             ReceivedData receivedData = allReceivedData.get(lastDecodedString);
-            String string = new String(receivedData.getPayload());
-            builder.append(string.replace("\n", "<br>"));
+            if (lastDecodedString != null) {
+                String string = new String(receivedData.getPayload());
+                builder.append(string.replace("\n", "<br>"));
+            }
         }
 
         builder.append("<br><b>Last Beacons Seen:</b><br>");
