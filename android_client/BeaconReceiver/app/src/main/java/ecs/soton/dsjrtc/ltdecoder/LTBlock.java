@@ -1,0 +1,258 @@
+package ecs.soton.dsjrtc.ltdecoder;
+
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+
+public class LTBlock {
+  public static final int FILESIZE_BYTES = 2;
+  public static final int BLOCKSIZE_BYTES = 1;
+  public static final int BLOCKSEED_BYTES = 4;
+
+
+  public static final int HEADER_START = 0;
+  public static final int FILESIZE_START = HEADER_START;
+  public static final int BLOCKSIZE_START = FILESIZE_START + FILESIZE_BYTES;
+  public static final int BLOCKSEED_START = BLOCKSIZE_START + BLOCKSIZE_BYTES;
+  public static final int BLOCK_START = BLOCKSEED_START + BLOCKSEED_BYTES;
+  public static final int HEADER_BYTES = BLOCK_START;
+
+  public final int filesize;
+  public final int blocksize;
+  public final long blockseed;
+  public final byte[] block;
+
+  public LTBlock(byte[] bytes) {
+    this(getFilesize(bytes), getBlocksize(bytes), getBlockseed(bytes),
+        getBlock(bytes, getBlocksize(bytes)));
+  }
+
+
+  public LTBlock(int filesize, int blocksize, long blockseed, byte[] block) {
+    this.filesize = filesize;
+    this.blocksize = blocksize;
+    this.blockseed = blockseed;
+    this.block = block;
+  }
+
+  public static int getFilesize(byte[] bytes) {
+    byte[] fs_bytes = Arrays.copyOfRange(bytes, FILESIZE_START, FILESIZE_START + FILESIZE_BYTES);
+    int filesize = ((int) ByteBuffer.wrap(fs_bytes).getShort()) & 0xFFFF;
+    return filesize;
+  }
+
+  public static int getBlocksize(byte[] bytes) {
+    byte[] bs_bytes = Arrays.copyOfRange(bytes, BLOCKSIZE_START, BLOCKSIZE_START + BLOCKSIZE_BYTES);
+    int blocksize = ((int) ByteBuffer.wrap(bs_bytes).get()) & 0xFF;
+    return blocksize;
+  }
+
+  public static long getBlockseed(byte[] bytes) {
+    byte[] bs_bytes = Arrays.copyOfRange(bytes, BLOCKSEED_START, BLOCKSEED_START + BLOCKSEED_BYTES);
+    long blockseed = ((long) ByteBuffer.wrap(bs_bytes).getInt() & 0xFFFFFFFF);
+    return blockseed;
+  }
+
+  public static byte[] getBlock(byte[] bytes, int blocksize) {
+    byte[] block_bytes = Arrays.copyOfRange(bytes, BLOCK_START, BLOCK_START + blocksize);
+    return block_bytes;
+  }
+
+  public static void main(String[] args) {
+    String[] decodable = {
+        "01720f0000000165207061636b6574210a3030303030",
+        "01720f10d63af17a27696735607a6f74346d03047d23",
+        "01720f56e509fe6f3603111244570a0d0f015211481d",
+        "01720f06d7d4b33f3326633466657479307065643d7d",
+        "01720f3113c398676c65207061636b6574210a546869",
+        "01720f35702e2f16410c020a000353312c145e5f460c",
+        "01720f437266f5471f0c4e170d064b15154261311c48",
+        "01720f353f77886e28180b441348151c41035812130e",
+        "01720f0613513306073032376f3e27300e63626f2a25",
+        "01720f1f9ef85f010a15585a762d0d3d4e4d620c3f41",
+        "01720f221105f1144c04000404101f450755783d060e",
+        "01720f09709c152e33294f502c3a7b6e7d762b263c70",
+        "01720f74f7f84d28363f5e061649732d6632266d6172",
+        "01720f066926e8317c1443144a4b105b1111512f6f13",
+        "01720f5094e0f367712a530b636c276c2c6f3c67383f",
+        "01720f2cee115129762567662f693634202228637e24",
+        "01720f6bb69ee1061816490b1f43110d055441571c1c",
+        "01720f44c6606d0e1f45490341024b1111527e741b1d",
+        "01720f16d371341f4441450c061611445315521a0709",
+        "01720f66b53b19756c64206578636565642061207369",
+        "01720f4468da362b6b67613134366d3e7a796f08406e",
+        "01720f46fc9a81607d5d797e4818497e1d1a51736d16",
+        "01720f1eb565b26f3504050a0000000000001710101f",
+        "01720f7188e8f62f330906130619173a705a49454907",
+        "01720f31a0fbdd7f663e6c646728273c652737227f6a",
+        "01720f6c3bd2bd6b262c0c5a693d330a4e7227756c78",
+        "01720f12f6a1617c42701d466e6e787e342c27455629",
+        "01720f56fce1f85c684a181a26284e5b5b0b1e37255b",
+        "01720f698faf182d335017491e0e104b0946556f2307",
+        "01720f6cf6678c5353084e13091654501217190c1a46",
+        "01720f41d8fec115050b4750150b0a1154566521040d",
+        "01720f49d1d9d17a0433393248106f31772d36081e23",
+        "01720f3e95b07f01001b4b4a571b1d52550644451f15",
+        "01720f71ec21d02c697b61733c64723b7c2b21617d37",
+        "01720f7ea36e2d00041b07050a47450c0b041144570e",
+        "01720f2869eb7122382a4f45642866206d753b6a2831",
+        "01720f2ebd7fd3005413491a025300481200521e0112",
+        "01720f13a94fc43e3a294f54742a77657e3a2f263f78",
+        "01720f001ccd96035a1e0a4b091c02162b5b6f695659",
+        "01720f6b0fce7e6e520f410040454f51480b10091c11",
+        "01720f61cae9397324613f38613a6e2b753826266778",
+        "01720f0a6033415e3c011a53491a5341415411160754",
+        "01720f79492815000b1745161052084e14491a0f0d11",
+        "01720f5898fe3c5345111045044454045307491d131e",
+        "01720f6455b1e8271c1b1a4e0e535409410045041b55",
+        "01720f18d3ed18732069732061207465737420737472",
+        "01720f188daefa604113150c580f1264004d3757711f",
+        "01720f1d0e96ca0016110d02090100114110020b134d",
+        "01720f0f082c6a04501b1047607303343b4b28381d41",
+        "01720f14b22ecf101f1000160c110c0b03001548121d",
+        "01720f681917433d34642b337977373b776338064e2e",
+        "01720f115290e864316c2231753b7474206a737b6e66",
+        "01720f4250901f45160c43161116490f47531d060618",
+        "01720f2f6393190000085354045300450000521a1a15",
+        "01720f3cea2ade16450d534141531d0b141845530413",
+        "01720f0a0487601b070947541c09155457181a190844",
+        "01720f55fd05e80e43082038451d067e2f07485e1749",
+        "01720f78eda916161116490f47531d06061845571f14",
+        "01720f2928e18b4b5d5a2a271c1b1a4e0e5354094100",
+        "01720f54a74c0216450d534141531d0b141845530413",
+        "01720f7e45b832451505430a4507486433040c535008",
+        "01720f2c0236b9623d611a406f2c733c2a776576697b",
+        "01720f01e9e676551f10520c160445110c4115000406",
+        "01720f45e7cddb511c0347081f4a1e6e575339013a19",
+        "01720f6038094c03705609100e0441340d50391f6344",
+        "01720f3926920853110a0a0b02445409410749190819",
+        "01720f6ab6189f5d05041b0300454b590a5b2b6f1453",
+        "01720f456d238265207061636b6574210a3030303030",
+        "01720f6d97b8416e676c65207061636b6574210a5468",
+        "01720f30539258386f2346592d7374207b27317d2d78",
+        "01720f56f45b844268783237676520605930272a2a77",
+        "01720f7c96eaec431b04174a6f2648693c091b17001b",
+        "01720f4e9baa3f6565793c6f2271696a6e6e7a65732f",
+        "01720f7a1d9b1145120b550d44530c16040900445000",
+        "01720f7cb44cf00b0845450802060e0154402a270107",
+        "01720f3650a3501428783c372d6d2b6e08796c203921",
+        "01720f552f379b741b001d470516001141170e160001",
+        "01720f0e8ceca10a467f7f7a212d36392236786f3479",
+        "01720f4cb7ce4b4e021406451505430a450748643304",
+        "01720f57fd32ad06181154527e20000d0f41060c4106",
+        "01720f0fd3597769611a06462f7c42410a5c71406407",
+        "01720f1de99a5f4408460d1e3e724f040b03422a270f",
+        "01720f54bc34100b0845450802060e0154402a270107",
+        "01720f3df9a01b38292f5e101a587f2665323325736f",
+        "01720f4bf94dda4d5c2e62293b28347f363f701e5636",
+        "01720f085d981c45571f140f0f451159695555541051",
+        "01720f3bdef2ec11020b13017e3a081748161d114c16",
+        "01720f5f2399d516001141170e160001794442595e57",
+        "01720f2faeba4c6e125f1a522836580a5c1e645e395c",
+        "01720f6f99e705550023666a6028736d0e747b672b64",
+        "01720f2e58c19a6e606d6a333c732c6e68736a0a582a",
+        "01720f1ec6c0e7732061207465737420737472696e67",
+        "01720f35f64a0a551f10520c160445110c4115000406",
+        "01720f0d6fa0fe741c01125449044f144c1045160c43",
+        "01720f43831fc976040c014a1205021e5b146f6f0a52",
+        "01720f0a5e638c4c1048040c43120a114c050016110d",
+        "01720f65ce1d473a24266f3f25613169756231372767",
+        "01720f5514860c53451943110017544153071b07090b",
+        "01720f7b532af00f0f45115969370c0748005217491c",
+        "01720f7917fd1416151e051747490748005443020c1e",
+        "01720f082ab7950b0208454150120a050218442a2409",
+        "01720f413c7b166e3d0c570d54194d52355b1c421f56",
+        "01720f622f2fbb65737420737472696e672074686174",
+        "01720f4278871c563c1f34306f6c475e19574a3a284a",
+        "01720f430af3cf207468617420776f756c6420657863",
+        "01720f6067ff872070602d6c206d753b6a2826306b69",
+        "01720f44acf5542a20000807001e1c550d4454000b17",
+        "01720f7bc3b20b5d7a677836080474386c6b1f735f27",
+        "01720f685f3fba713f7873237431766e60755e4f7d6f",
+        "01720f78fdf5ff6e175415154a460573194408055b5a",
+        "01720f6dae1dda7323617e2c6831751f467f2265203a",
+        "01720f02eb18765e3c011a53491a5341415411160754",
+        "01720f2c45866c20776f756c64206578636565642061",
+        "01720f1202cd19302a464e4d60684e266e0e6d2c154b",
+        "01720f3718dac8206d262a6c2d74755e4674683f373d",
+        "01720f5ca6ac4b757123696230633131763c606c643d",
+        "01720f7cf15add6c6735747a6876641a1c683d203e68",
+        "01720f596a5a98090a520d1f0e44045512184c1f1646",
+        "01720f557fe438673f6161607e74762a19314e0c392d",
+        "01720f135b13372c65303b7b6e75696e6a7e6520747a",
+        "01720f069b605b426f6827641b422c672c357637273b",
+        "01720f1f60d2ee55091c43001d0745044453084e1405",
+        "01720f46a258bd266072632d00152837736968233b78",
+        "01720f62d1e37f2c20396677276174250e202f753765",
+        "01720f5937281b0d0c0911017a330a080d15536e741a",
+        "01720f3d69864c3d3d212676227232451430541d3f68",
+        "01720f5a0802aa36746f277a7f373d7667373f7a7a20",
+        "01720f34ed60fb633f7e6e6f0c52696e7a6172603b75",
+        "01720f573b19d2060013212042044046135315181c5b",
+        "01720f233ec4d3404b471e166974437a37571d7b7207",
+        "01720f387b60f70004084c18001a1a4e064c0655130a",
+        "01720f60f9bac2380c4916580a164505001545001d4e",
+        "01720f071e1a81682c79706211567e290725635e442a",
+        "01720f0ea71a6b7a050b044875755d286a15082a6345",
+        "01720f683ecc897e1a183e214e510e451110602a4e0f",
+        "01720f5fe3fc1f744b6b0c527964372f73282d4a1573",
+        "01720f355995481b1a4e0e535409410045041b551f10",
+        "01720f4803a81c5a3227227c6b6224696f3152086b35",
+        "01720f30f9add1170b5c0c455c114f14030740623501",
+        "01720f3d235544287145633200121d4e185044484741",
+        "01720f573185ee205d15004511161b3069566d08731c",
+        "01720f0e1515c465207061636b6574210a3030303030",
+        "01720f7c7a19f80e0202000409021f45034e7f380c49",
+        "01720f7b48d55a4e5204185044180b0a2a5e5e2c7e46",
+        "01720f2f2143e2491d13521d060654541f0e014c134f",
+        "01720f36f8f6af45110c41150004061b0b0845450802",
+        "01720f7f69498649535b411d02454f491b17065b0a05",
+        "01720f013ad4cf1641051f5941490745125443061719",
+        "01720f52c05ad73300041f48080a514a521969720f43",
+        "01720f31db26b62a23071c1f44491658024511015315",
+        };
+
+
+    LTDecoder decoder = new LTDecoder();
+
+    for (String str_bytes : decodable) {
+      byte[] bytes = new byte[str_bytes.length() / 2];
+      for (int i = 0; i < bytes.length; i++) {
+        int index = i * 2;
+        int j = Integer.parseInt(str_bytes.substring(index, index + 2), 16);
+        bytes[i] = (byte) j;
+      }
+
+//      System.out.println(str_bytes);
+//      System.out.print("(");
+//      System.out.print(getFilesize(bytes)  + ", ");
+//      System.out.print(getBlocksize(bytes)  + ", ");
+//      System.out.print(getBlockseed(bytes));
+//      System.out.println(")");
+      
+      // Consume till success
+      if (decoder.consume_block(new LTBlock(bytes))) {
+        break;
+      }
+    }
+    if (decoder.is_done()) { 
+      System.out.println("Done!!!");
+      System.out.println(new String(decoder.get_decoded_bytes()));
+    } else {
+      System.out.println("Failed: Reached EOS!!!");
+    }
+      
+
+
+
+
+
+    // String str_bytes = "01c71025065a5d6a6374247e6d6a29676e1a406f2c733c";
+    // byte[] bytes = new byte[str_bytes.length() / 2];
+
+    // System.out.println(getFilesize(bytes));
+    // System.out.println(getBlocksize(bytes));
+    //
+    // System.out.println(Arrays.toString(getBlock(bytes, getBlocksize(bytes))));
+  }
+
+}

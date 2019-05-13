@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Beacon Receiver</string>
+    <string name="gotoReceiver">Go to beacon receiver!</string>
+    <string name="gotoStats">View packet statistics</string>
+
+
+    <string name="stats_filler">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque congue dui et consequat faucibus. Duis ornare quam nec viverra vestibulum. Integer id rhoncus lectus, eu lobortis diam. Etiam et faucibus dolor. In facilisis nisl vitae quam semper, et fermentum nulla porttitor. Sed interdum molestie augue eu tincidunt. Nulla mauris lorem, ultricies consequat feugiat sit amet, gravida et ex. Donec interdum elit mi, nec laoreet erat tincidunt id. Nullam et augue pharetra, accumsan purus porta, commodo erat. In posuere venenatis turpis, non finibus eros euismod vel. Nulla mattis ornare magna, ut luctus quam feugiat nec. Donec sit amet iaculis leo, eu ultrices ipsum. Aenean quis mollis dolor.\nNullam ultricies ante a auctor commodo. Aliquam consectetur lorem nec orci auctor maximus. Ut a fermentum ex. Quisque eu sagittis metus. Quisque interdum facilisis sapien eget semper. Quisque facilisis ultricies tellus id gravida. Aenean accumsan nibh risus, non tempor velit sodales eu. Maecenas dapibus eget dui tempus lobortis.</string>
+    <string name="btnRefresh">Refresh</string>
+    <string name="btnClear">Clear</string>
+</resources>
