@@ -56,6 +56,8 @@ public class BeaconReceiver {
     private int seenDataPackets = 0;
     public final Map<Integer, ReceivedData> allReceivedData = new LinkedHashMap<>();
     private Map<Integer, LTDecoder> chunkDecoders = new HashMap<>();
+    private Map<Integer, Long> seenTimes = new HashMap<>();
+    private Map<Integer, Long> endTimes = new HashMap<>();
     private Map<Integer, Integer> chunkReceiveCount = new HashMap<>();
     private Set<Integer> failedDecodes = new HashSet<>();
     private int lastDecodedString = 0;
@@ -137,6 +139,7 @@ public class BeaconReceiver {
         if (!chunkDecoders.containsKey(chunk)) {
             chunkDecoders.put(chunk, new LTDecoder());
             chunkReceiveCount.put(chunk, 0);
+            seenTimes.put(chunk, System.currentTimeMillis());
         }
         // Use the decoder
         LTDecoder decoder = chunkDecoders.get(chunk);
@@ -151,7 +154,8 @@ public class BeaconReceiver {
         byte[] blockData = Arrays.copyOfRange(recv, DATA_BLOCK_START, DATA_BLOCK_START + DATA_BLOCK_BYTES);
         LTBlock block = new LTBlock(blockData);
         if (decoder.consume_block(block)) {
-           // Successfully decoded, extract the data from the byte stream
+            endTimes.put(chunk, System.currentTimeMillis());
+            // Successfully decoded, extract the data from the byte stream
             ReceivedData receivedData = new ReceivedData(decoder.get_decoded_bytes());
             // If the CRC is valid store it, otherwise decoder will need to be reset to
             // attempt again
@@ -215,8 +219,8 @@ public class BeaconReceiver {
 
         builder.append("<br><b>Data Packets</b><br>");
         builder.append(String.format("Seen: %d<br>", seenDataPackets));
-        builder.append(String.format("%5s: %6s - %7s - [%4s/%4s] | %s<br>",
-                "Chunk", "Bytes", "Packets", "Got", "Need", "Result"));
+        builder.append(String.format("%5s: %6s - %7s - [%4s/%4s] | %8s | %s<br>",
+                "Chunk", "Bytes", "Packets", "Got", "Need", "Result", "Time (ms)"));
         if (chunkDecoders.isEmpty()) {
             builder.append("* No Data Decoding *<br>");
         } else {
@@ -237,8 +241,13 @@ public class BeaconReceiver {
                 } else {
                     state = "RECEIVING";
                 }
-                String stats = String.format("%5d: %6d - %7d - [%4d/%4d] | %s<br>",
-                        chunk, inputSize, seenPackets, gotBlocks, neededBlocks, state);
+                String time = "-";
+                if (endTimes.containsKey(chunk)) {
+                    time = String.valueOf(endTimes.get(chunk) - seenTimes.get(chunk));
+                }
+
+                String stats = String.format("%5d: %6d - %7d - [%4d/%4d] | %8s | %s <br>",
+                        chunk, inputSize, seenPackets, gotBlocks, neededBlocks, state, time);
                 builder.append(stats);
             }
         }
