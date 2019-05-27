@@ -14,6 +14,7 @@ import android.text.Html;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.altbeacon.beacon.Beacon;
@@ -61,7 +62,12 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
     private BackgroundPowerSaver backgroundPowerSaver;
 
     private AdDisplayView myAdDisplay;
+    private LinearLayout buttonLayout;
     private TextView myStatsDisplay;
+
+    private TextView indexText;
+
+    private boolean fullscreen = false;
 
     Random rand;
 
@@ -73,8 +79,12 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
         rand = new Random();
 
         myAdDisplay = findViewById(R.id.adDisplay);
+        buttonLayout = findViewById(R.id.buttonLayout);
         myStatsDisplay = findViewById(R.id.statsTextView);
         myStatsDisplay.setMovementMethod(new ScrollingMovementMethod());
+
+        indexText = findViewById(R.id.indexText);
+        myAdDisplay.setIndexText(indexText);
 
         beaconManager = BeaconManager.getInstanceForApplication(this);
         receiver = new BeaconReceiver();
@@ -121,6 +131,8 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
         }
 
         beaconManager.bind(this);
+
+        myAdDisplay.initView();
     }
 
     private void verifyBluetooth() {
@@ -158,15 +170,44 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
         }
     }
 
-    public void clearAd(View view) {
-        // TODO: Do something with this
-//        myAdDisplay.randomiseColor();
-        generateTestObjects();
+    public void deleteAd(View view) {
+        myAdDisplay.deleteAd();
     }
 
-    public void refreshAd(View view) {
-        // TODO: Do something with this
-        myStatsDisplay.setTextColor(Color.rgb(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256)));
+    public void previousAd(View view) {
+//        myAdDisplay.randomiseColor();
+//        generateTestObjects();
+        myAdDisplay.previousAd();
+    }
+
+    public void nextAd(View view) {
+//        myStatsDisplay.setTextColor(Color.rgb(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256)));
+        myAdDisplay.nextAd();
+    }
+
+    public void resetStats(View view) {
+        // TODO: Reset stats
+
+        // very temporary
+        receiver = new BeaconReceiver();
+        myAdDisplay.setReceiver(receiver);
+    }
+
+    public void statsClearFailed(View view) {
+        // TODO: Clear failed stats
+        receiver.resetFailedDecoders();
+    }
+
+    public void statsFullscreen(View view) {
+        if (fullscreen) {
+            myAdDisplay.setVisibility(View.VISIBLE);
+            buttonLayout.setVisibility(View.VISIBLE);
+        } else {
+            myAdDisplay.setVisibility(View.GONE);
+            buttonLayout.setVisibility(View.GONE);
+        }
+
+        fullscreen = !fullscreen;
     }
 
     @Override

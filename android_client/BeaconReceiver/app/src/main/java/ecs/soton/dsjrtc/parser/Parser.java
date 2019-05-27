@@ -1,5 +1,6 @@
 package ecs.soton.dsjrtc.parser;
 
+import android.content.Context;
 import android.graphics.Color;
 
 import java.io.UnsupportedEncodingException;
@@ -19,7 +20,9 @@ import ecs.soton.dsjrtc.adobjects.Point;
 public class Parser {
 
 	boolean PRINTING = true;
-	
+
+	Context context;
+
 	ArrayList<Drawable> objList;
 
 	private static final int AD_CFG = 1;
@@ -39,7 +42,9 @@ public class Parser {
 
 	private Map<Integer, Integer> instructions;
 
-	public Parser() {
+	public Parser(Context c) {
+		this.context = c;
+
 		objList = new ArrayList<Drawable>();
 		instructions = new HashMap<Integer, Integer>();
 
