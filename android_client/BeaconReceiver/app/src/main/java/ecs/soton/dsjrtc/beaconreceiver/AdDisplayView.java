@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.media.AudioTrack;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.TextView;
@@ -16,8 +17,11 @@ import java.util.Map;
 import java.util.Random;
 
 import ecs.soton.dsjrtc.adobjects.Drawable;
+import ecs.soton.dsjrtc.adobjects.ObjCanvas;
 import ecs.soton.dsjrtc.adobjects.ObjImage;
+import ecs.soton.dsjrtc.adobjects.ObjPolygon;
 import ecs.soton.dsjrtc.adobjects.ObjText;
+import ecs.soton.dsjrtc.adobjects.Point;
 import ecs.soton.dsjrtc.beacondecoders.BeaconReceiver;
 import ecs.soton.dsjrtc.beacondecoders.ReceivedData;
 import ecs.soton.dsjrtc.parser.Parser;
@@ -64,6 +68,38 @@ public class AdDisplayView extends View {
 
         this.updateReceivedData();
         this.updateView();
+
+//        this.makeKirkAd();
+    }
+
+    public void makeKirkAd() {
+        // black background
+        objList.add(new ObjCanvas(0, 0, Color.BLACK));
+        // smaller kirk image
+        objList.add(new ObjImage(3, new Point(300, 200), 0, 0, 0));
+        // text
+        objList.add(new ObjText(new Point(100, 200), 0, Color.GREEN, 48, 245, 0, "New from ECS productions!"));
+        objList.add(new ObjText(new Point(700, 70), 0, Color.GREEN, 48, 35, 0, "Only limited stock!"));
+        objList.add(new ObjText(new Point(100, 800), 0, Color.RED, 64, 0, 0, "Show this message for 99% off!"));
+//        objList.add(new ObjText(new Point(), 0, Color.BLUE, 12, , 0, ""));
+        // adding his crown
+        ArrayList<Point> points = new ArrayList<Point>();
+        points.add(new Point(400, 230));
+        points.add(new Point(430, 290));
+        points.add(new Point(460, 230));
+        points.add(new Point(490, 290));
+        points.add(new Point(520, 230));
+        points.add(new Point(550, 290));
+        points.add(new Point(580, 230));
+        points.add(new Point(610, 290));
+        points.add(new Point(640, 230));
+        points.add(new Point(670, 290));
+        points.add(new Point(670, 330));
+        points.add(new Point(400, 330));
+//        points.add(new Point());
+        objList.add(new ObjPolygon(Color.YELLOW, points.size(), points));
+
+        this.invalidate();
     }
 
     public void setIndexText(TextView indexText) {
@@ -145,10 +181,10 @@ public class AdDisplayView extends View {
 
         int i = 1;
         while (itr.hasNext()) {
-            itr.next();
-
+            Map.Entry<Integer, ReceivedData> entry = itr.next();
             if (i == adIndex) {
                 // need to remove the current ad
+                receiver.chunkDecoders.remove(entry.getKey());
                 itr.remove();
                 break;
             }
