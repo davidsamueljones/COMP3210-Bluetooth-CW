@@ -23,26 +23,45 @@
             android:layout_weight="3" />
 
         <LinearLayout
+            android:id="@+id/buttonLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal" >
 
             <Button
-                android:id="@+id/btnClear"
+                android:id="@+id/btnDelete"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/btnClear"
-                android:onClick="clearAd"
+                android:text="@string/btnDelete"
+                android:onClick="deleteAd"
+                tools:ignore="ButtonStyle" />
+
+            <TextView
+                android:id="@+id/indexText"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Page 1/10"
+                />
+
+            <Button
+                android:id="@+id/btnPrevious"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/btnPrevious"
+                android:onClick="previousAd"
                 tools:ignore="ButtonStyle" />
 
             <Button
-                android:id="@+id/btnRefresh"
+                android:id="@+id/btnNext"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/btnRefresh"
-                android:onClick="refreshAd"
+                android:text="@string/btnNext"
+                android:onClick="nextAd"
                 tools:ignore="ButtonStyle" />
         </LinearLayout>
 
@@ -53,8 +72,42 @@
             android:layout_weight="2"
             android:paddingLeft="5dp"
             android:paddingRight="5dp"
-            android:scrollbars="vertical"
-            android:text="@string/stats_filler" />
+            android:scrollbars="vertical" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:baselineAligned="false">
+
+            <Button
+                android:id="@+id/btnFullScreen"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/btnFullscreen"
+                android:onClick="statsFullscreen"
+                tools:ignore="ButtonStyle" />
+
+            <Button
+                android:id="@+id/btnClearFailed"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/btnClearFailed"
+                android:onClick="statsClearFailed"
+                tools:ignore="ButtonStyle" />
+
+            <Button
+                android:id="@+id/btnReset"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/btnReset"
+                android:onClick="resetStats"
+                tools:ignore="ButtonStyle" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

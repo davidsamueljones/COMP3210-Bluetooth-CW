@@ -43,7 +43,7 @@ public class ObjText implements Drawable {
 			TextPaint tPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
 			tPaint.setColor(Color.rgb(61, 61, 61));
 			tPaint.setTextSize((int)(14 * scale));
-			tPaint.setShadowLayer(1f, 0f, 1f, Color.GRAY);
+//			tPaint.setShadowLayer(1f, 0f, 1f, Color.GRAY);
 
 			StaticLayout textLayout = new StaticLayout(content, tPaint, textWidth, Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
 			int textHeight = textLayout.getHeight();

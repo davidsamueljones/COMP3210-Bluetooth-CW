@@ -55,7 +55,7 @@ public class BeaconReceiver {
     // Data packet structures
     private int seenDataPackets = 0;
     public final Map<Integer, ReceivedData> allReceivedData = new LinkedHashMap<>();
-    private Map<Integer, LTDecoder> chunkDecoders = new HashMap<>();
+    public final Map<Integer, LTDecoder> chunkDecoders = new HashMap<>();
     private Map<Integer, Long> seenTimes = new HashMap<>();
     private Map<Integer, Long> endTimes = new HashMap<>();
     private Map<Integer, Integer> chunkReceiveCount = new HashMap<>();

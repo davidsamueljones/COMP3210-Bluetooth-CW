@@ -43,12 +43,31 @@ public class ObjImage implements Drawable {
 		// draw from bytes
 		// TODO: Convert ID to image
 		if (imageBytes == null) {
-			int resourceID = res.getIdentifier("kirk", "drawable", context.getPackageName());
+			int resourceID = res.getIdentifier("image_" + image_ID, "drawable", context.getPackageName());
 			imageBMP = BitmapFactory.decodeResource(res, resourceID);
+			canvas.drawBitmap(imageBMP, position.getX(), position.getY(), mPaint);
 		} else {
 			imageBMP = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-		}
+			Bitmap newBitmap = null;
 
-		canvas.drawBitmap(imageBMP, 0, 0, mPaint);
+			int canvasWidth = canvas.getWidth();
+			int canvasHeight = canvas.getHeight();
+
+			int imageWidth = imageBMP.getWidth();
+			int imageHeight = imageBMP.getHeight();
+
+			double heightRatio = (double) canvasHeight/imageHeight;
+			int newWidth = (int) Math.round(imageWidth * heightRatio);
+			if (newWidth <= canvasWidth) {
+				newBitmap = Bitmap.createScaledBitmap(imageBMP, newWidth, canvasHeight, true);
+			} else {
+				double widthRatio = (double) canvasWidth/imageWidth;
+				int newHeight = (int) Math.round(imageHeight * widthRatio);
+
+				newBitmap = Bitmap.createScaledBitmap(imageBMP, canvasWidth, newHeight, true);
+			}
+
+			canvas.drawBitmap(newBitmap, 0, 0, mPaint);
+		}
 	}
 }
