@@ -1,6 +1,7 @@
 
-setup(ip)
+setup()
 {
+    ip=$1
     scp python/packet_gen.py pi@$ip:packet_gen.py
     scp python/file_broadcast.py pi@$ip:file_broadcast.py
     scp python/advert_broadcast.py pi@$ip:advert_broadcast.py
@@ -14,5 +15,5 @@ setup(ip)
     scp python/km_small.png pi@$ip:km_small.png
 }
 
-setup(192.168.43.8)
-setup(192.168.43.156)
+setup 192.168.43.8
+setup 192.168.43.156
