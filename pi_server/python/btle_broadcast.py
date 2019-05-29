@@ -67,7 +67,7 @@ def send_test_packet(i, bt_device=BT_DEVICE):
     uuid = bitstring.pack(">L", i).hex
     uuid =  "0"*(16-len(uuid)) + uuid
     uuid = ' '.join(uuid[i:i+2] for i in range(0, len(uuid), 2))
-    str_bytes = "1E 02 01 1A 1A FF 4C 00 {} {} {} 00 0A 00 0B".format( \
+    str_bytes = "1E 02 01 1A 1B FF 4C 00 {} {} {} 00 0A 00 0B".format( \
         TEST_BEACON_TYPE, test_stream_id, uuid)
     str_cmd = "sudo hcitool -i {} cmd 0x08 0x0008 {}".format(bt_device, str_bytes)
     print(str_cmd)
@@ -85,7 +85,7 @@ def send_test_stream(length, bt_device=BT_DEVICE):
 
 def send_data_packet(data_bytes, bt_device=BT_DEVICE):
     data_bytes = ' '.join(data_bytes[i:i+2] for i in range(0, len(data_bytes), 2))
-    str_bytes = "1E 02 01 1A 1A FF 4C 00 {} {}".format(DATA_BEACON_TYPE, data_bytes)
+    str_bytes = "1E 02 01 1A 1B FF 4C 00 {} {}".format(DATA_BEACON_TYPE, data_bytes)
     str_cmd = "sudo hcitool -i {} cmd 0x08 0x0008 {}".format(bt_device, str_bytes)
     #print(str_cmd)
     execute_cmds([str_cmd])
