@@ -32,11 +32,12 @@ if __name__ == "__main__":
 
     # Define some objects
     bss = list()
-    bss.append(packet_gen.gen_canvas_bitstring((1000, 500), (1, 0, 0)))
-    bss.append(packet_gen.gen_img_bitstring(1, (23, 52), (1, 0), 0))
-    bss.append(packet_gen.gen_text_bitstring((50, 50), 1, (1, 0, 0), 50, 90, "Richard is a cuck!"))
-    bss.append(packet_gen.gen_polygon_bitstring((50, 50, 50), ((50, 50), (50, 50), (25, 50), (123, 988))))
-    bss.append(packet_gen.gen_text_bitstring((50, 50), 1, (1, 0, 0), 50, 90, "Yep, still a cuck!"))
+    bss.append(packet_gen.gen_canvas_bitstring((0, 0), (0, 0, 0)))
+    bss.append(packet_gen.gen_img_bitstring(3, (300, 200), (0, 0), 0))
+    bss.append(packet_gen.gen_text_bitstring((100, 200), 0, (0, 255, 0), 48, 345, "New from ECS productions!"))
+    bss.append(packet_gen.gen_text_bitstring((700, 70), 0, (0, 255, 0), 48, 35, "Only limited stock!"))
+    bss.append(packet_gen.gen_text_bitstring((100, 800), 0, (255, 0, 0), 64, 0, "Show this message for 99% off!"))
+    bss.append(packet_gen.gen_polygon_bitstring((255, 255, 0), ((400, 230), (430, 290), (460, 230), (490, 290), (520, 230), (550, 290), (580, 230), (610, 290), (640, 230), (670, 290), (670, 330), (400, 330))))
     # Create a bitstream of all the objects
     ad_bytes = packet_gen.generate_ad(bss).bytes
 
